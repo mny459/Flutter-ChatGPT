@@ -30,6 +30,10 @@ class OpenAI {
   /// use for access for chat gpt [_token]
   static String? _token;
 
+  /// openai url
+  /// default [kURL]
+  String _baseUrl = kURL;
+
   static SharedPreferences? _prefs;
 
   ///new instance prefs for keep my data
@@ -43,7 +47,13 @@ class OpenAI {
     await _prefs?.setString(kTokenKey, token);
   }
 
+  void setBaseUrl(String baseUrl) async {
+    _baseUrl = baseUrl;
+  }
+
   String getToken() => "$_token";
+
+  String getBaseUrl() => "$_baseUrl";
 
   ///build environment for openai [build]
   ///setup http client
@@ -72,6 +82,7 @@ class OpenAI {
 
     _client = OpenAIClient(dio: dio, isLogging: isLogger);
     setToken(token);
+    setBaseUrl(setup.baseUrl);
 
     return instance;
   }
@@ -79,7 +90,7 @@ class OpenAI {
   ///find all list model ai [listModel]
   Future<AiModel> listModel() async {
     return _client.get<AiModel>(
-      "$kURL$kModelList",
+      "$_baseUrl$kModelList",
       onSuccess: (it) {
         return AiModel.fromJson(it);
       },
@@ -88,7 +99,7 @@ class OpenAI {
 
   /// find all list engine ai [listEngine]
   Future<EngineModel> listEngine() async {
-    return _client.get<EngineModel>("$kURL$kEngineList", onSuccess: (it) {
+    return _client.get<EngineModel>("$_baseUrl$kEngineList", onSuccess: (it) {
       return EngineModel.fromJson(it);
     });
   }
@@ -100,7 +111,7 @@ class OpenAI {
   /// - look more
   /// https://beta.openai.com/examples
   Future<CTResponse?> onCompletion({required CompleteText request}) async {
-    return _client.post("$kURL$kCompletion", request.toJson(), onSuccess: (it) {
+    return _client.post("$_baseUrl$kCompletion", request.toJson(), onSuccess: (it) {
       return CTResponse.fromJson(it);
     });
   }
@@ -118,8 +129,9 @@ class OpenAI {
 
   StreamController<CTResponse>? _completeControl =
       StreamController<CTResponse>.broadcast();
+
   void _completeText({required CompleteText request}) {
-    _client.postStream("$kURL$kCompletion", request.toJson()).listen((rawData) {
+    _client.postStream("$_baseUrl$kCompletion", request.toJson()).listen((rawData) {
       if (rawData.statusCode != HttpStatus.ok) {
         _client.log.errorLog(code: rawData.statusCode, error: rawData.data);
         _completeControl
@@ -144,8 +156,9 @@ class OpenAI {
   }
 
   ///Given a chat conversation, the model will return a chat completion response.
-  Future<ChatCTResponse?> onChatCompletion({required ChatCompleteText request}) {
-    return _client.post("$kURL$kChatGptTurbo", request.toJson(),
+  Future<ChatCTResponse?> onChatCompletion(
+      {required ChatCompleteText request}) {
+    return _client.post("$_baseUrl$kChatGptTurbo", request.toJson(),
         onSuccess: (it) {
       return ChatCTResponse.fromJson(it);
     });
@@ -160,9 +173,10 @@ class OpenAI {
 
   StreamController<ChatCTResponse>? _chatCompleteControl =
       StreamController<ChatCTResponse>.broadcast();
+
   void _chatCompleteText({required ChatCompleteText request}) {
     _client
-        .postStream("$kURL$kChatGptTurbo", request.toJson())
+        .postStream("$_baseUrl$kChatGptTurbo", request.toJson())
         .listen((rawData) {
       if (rawData.statusCode != HttpStatus.ok) {
         _client.log.errorLog(code: rawData.statusCode, error: rawData.data);
@@ -201,9 +215,10 @@ class OpenAI {
   }
 
   final _genImgController = StreamController<GenImgResponse>.broadcast();
+
   void _generateImage(GenerateImage request) {
     _client
-        .postStream("$kURL$kGenerateImage", request.toJson())
+        .postStream("$_baseUrl$kGenerateImage", request.toJson())
         .listen((rawData) {
       if (rawData.statusCode != HttpStatus.ok) {
         _client.log.errorLog(code: rawData.statusCode, error: rawData.data);
@@ -237,7 +252,7 @@ class OpenAI {
 
   ///generate image with prompt
   Future<GenImgResponse?> generateImage(GenerateImage request) async {
-    return _client.post("$kURL$kGenerateImage", request.toJson(),
+    return _client.post("$_baseUrl$kGenerateImage", request.toJson(),
         onSuccess: (it) {
       return GenImgResponse.fromJson(it);
     });

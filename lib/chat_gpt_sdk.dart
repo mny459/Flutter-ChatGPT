@@ -11,3 +11,4 @@ export 'src/model/openai_model/openai_models.dart';
 export 'src/model/openai_engine/engine_model.dart';
 export 'src/model/chat_complete/request/ChatCompleteText.dart';
 export 'src/model/chat_complete/response/ChatCTResponse.dart';
+export 'src/client/exception/openai_exception.dart';
